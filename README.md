@@ -146,8 +146,10 @@ library.
 Unlike on UNIX, the static library is named ColPack_static (ColPack_static.lib)
 to avoid a name conflict with the shared library's ColPack.lib.
 
-Finally, some of the examples do not compile, seemingly because their
-filenames are too long.
+Finally, some of the examples have file names so long that their object file
+paths exceed the Windows path length limit. ColPack therefore defaults to
+`CMAKE_INTERMEDIATE_DIR_STRATEGY=SHORT` on Windows, which requires CMake 4.2 or
+newer to build all examples.
 
 
 MAC OS Build and Install ColPack Instructions

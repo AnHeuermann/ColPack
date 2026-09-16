@@ -54,6 +54,12 @@ if(WIN32)
         # CMake can export symbols for us, allowing use of the shared library.
         set(CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS TRUE)
     endif()
+    # Some examples have file names of almost 100 characters. With the FULL
+    # strategy their object paths (CMakeFiles/<target>.dir/.../<source>.obj)
+    # exceed MAX_PATH and the build fails. SHORT uses hashed intermediate
+    # paths; it needs CMake 4.2 and is ignored by older versions.
+    set(CMAKE_INTERMEDIATE_DIR_STRATEGY SHORT CACHE STRING
+        "Strategy for target intermediate directories (FULL or SHORT).")
 endif()
 
 if(ENABLE_OPENMP)
