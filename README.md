@@ -109,7 +109,7 @@ The above instruction are tested under Ubuntu system. You may need to modify the
 
 Ubuntu Build and Install ColPack Instruction
 ----------------------------------------------
-Install ColPack makes ColPack easy to use and it can also decreases the size of the execuable file. ColPack is built with **CMake** (version 3.12 or newer) and a compiler supporting OpenMP. To build, test and install ColPack, follow the instructions below:
+Install ColPack makes ColPack easy to use and it can also decreases the size of the execuable file. ColPack is built with **CMake** (version 3.14 or newer) and a compiler supporting OpenMP. To build, test and install ColPack, follow the instructions below:
 
     cd
     git clone https://github.com/OpenModelica/ColPack.git  #Download ColPack
@@ -118,38 +118,26 @@ Install ColPack makes ColPack easy to use and it can also decreases the size of 
     cmake -S . -B build -DCMAKE_INSTALL_PREFIX:PATH=${fullpath}
     cmake --build build -j 4   # Where "4" is the number of cores on your machine
     ctest --test-dir build     # run the Basic examples as tests
-    cmake --install build      # install the libraries and headers
+    cmake --install build      # install the library, headers and CMake package
 
-Use `cmake -LH build` or `ccmake build` to see a list of
-options, such as `ENABLE_EXAMPLES` and `ENABLE_OPENMP`, which you can set when
-configuring:
+Use `cmake -LH build` or `ccmake build` to see a list of options, which you can set when configuring, e.g. `cmake -S . -B build -DCOLPACK_BUILD_ALL_EXAMPLES=ON`:
 
-    cmake -S . -B build -DENABLE_EXAMPLES=ON
+| Option | Default | Description |
+| --- | --- | --- |
+| `COLPACK_ENABLE_OPENMP` | `ON` | Build with OpenMP. |
+| `COLPACK_BUILD_SHARED_LIBS` | `OFF` | Build a shared instead of a static library. |
+| `COLPACK_BUILD_EXAMPLES` | `ON` if top-level project | Build the `ColPack` executable and the Basic examples and run them as tests. |
+| `COLPACK_BUILD_ALL_EXAMPLES` | `OFF` | Also build the examples in `SampleDrivers/Matrix_Compression_and_Recovery`. |
 
 If not using`-DCMAKE_INSTALL_PREFIX:PATH`, the library files will be installed under `/usr/local/` by default which may requires privilege.
 
 Windows Build and Install ColPack Instruction
 -------------------------------------------------------
-You can build ColPack's static library on Windows using Visual Studio 
-(tested with Visual Studio 2015) and CMake. Note, however, that you are not
-able to use OpenMP (Visual Studio supports only OpenMP 2.0), and cannot
-compile the ColPack executable (it depends on the POSIX getopt.h).
+ColPack is built and tested on Windows with [MSYS2](https://www.msys2.org/) UCRT64 and GCC. Install the `mingw-w64-ucrt-x86_64-toolchain` and `mingw-w64-ucrt-x86_64-cmake` packages and follow the [Ubuntu instructions](#ubuntu-build-and-install-colpack-instructions) in a UCRT64 shell.
 
-If you are using CMake 3.4 or greater, you can build and use ColPack's
-shared library. If you have an older CMake, we still build the shared
-library, but you will not be able to use it because none of the symbols will
-be exported (Visual Studio will not generate a .lib file).
+Visual Studio is not supported, because it only provides OpenMP 2.0.
 
-On Windows, the examples link to the static library instead of the shared
-library.
-
-Unlike on UNIX, the static library is named ColPack_static (ColPack_static.lib)
-to avoid a name conflict with the shared library's ColPack.lib.
-
-Finally, some of the examples have file names so long that their object file
-paths exceed the Windows path length limit. ColPack therefore defaults to
-`CMAKE_INTERMEDIATE_DIR_STRATEGY=SHORT` on Windows, which requires CMake 4.2 or
-newer to build all examples.
+Some of the examples have file names so long that their object file paths exceed the Windows path length limit. ColPack therefore defaults to `CMAKE_INTERMEDIATE_DIR_STRATEGY=SHORT` on Windows, which requires CMake 4.2 or newer to build all examples.
 
 
 MAC OS Build and Install ColPack Instructions
@@ -168,15 +156,19 @@ Another recommend altinative way is to install an Ubuntu system on your MAC with
     
 After the Build, Use ColPack as Installed Library
 -------------------------------------------------
-After the build, we have already generate an shared library under the `$fullpath` directory, and an executable file 'ColPack' under the colpack root directory. And you can use it.
-However if you want to write your own code and use ColPack as an shared library. Then follow the following ways:
-* export library's path to `LD_LIBRARY_PATH`
-* create your own code. 
-* include the relative ColPack header files within your code. `#include "ColPackHeaders.h"`
-* added `-ldl path/to/installed/library` and `-I /path/to/installed/include` to the compiler
-* compile the code
+ColPack provides the CMake target `ColPack::colpack`, which carries the include directories and OpenMP flags. Include the headers with `#include "ColPackHeaders.h"`.
 
-We provide a template codes in `Example_Use_Library`
+Either use an installed ColPack, setting `CMAKE_PREFIX_PATH` to the install prefix:
+
+    find_package(ColPack REQUIRED)
+    target_link_libraries(myapp PRIVATE ColPack::colpack)
+
+or add the ColPack sources to your project. The examples are then not built by default:
+
+    add_subdirectory(ColPack)
+    target_link_libraries(myapp PRIVATE ColPack::colpack)
+
+See `test/consumer` for a complete example.
 
 &nbsp;   
 &nbsp;   

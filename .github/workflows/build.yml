@@ -34,7 +34,7 @@ jobs:
       - name: Configure
         run: |
           cmake -S . -B build -G "Unix Makefiles" \
-            -DENABLE_EXAMPLES=ON \
+            -DCOLPACK_BUILD_ALL_EXAMPLES=ON \
             -DCMAKE_BUILD_TYPE=${{ matrix.build-type }}
 
       - name: Build
@@ -42,6 +42,27 @@ jobs:
 
       - name: Test
         run: ctest --test-dir build --output-on-failure
+
+      - name: Install
+        run: cmake --install build --prefix install
+
+      # Build a downstream project against the installed package.
+      - name: Test find_package
+        run: |
+          cmake -S test/consumer -B build-find-package -G "Unix Makefiles" \
+            -DCMAKE_BUILD_TYPE=${{ matrix.build-type }} \
+            -DCMAKE_PREFIX_PATH=$PWD/install
+          cmake --build build-find-package
+          ctest --test-dir build-find-package --output-on-failure
+
+      # Include ColPack with add_subdirectory(), as OpenModelica does.
+      - name: Test add_subdirectory
+        run: |
+          cmake -S test/consumer -B build-add-subdirectory -G "Unix Makefiles" \
+            -DCMAKE_BUILD_TYPE=${{ matrix.build-type }} \
+            -DCOLPACK_SOURCE_DIR=$PWD
+          cmake --build build-add-subdirectory
+          ctest --test-dir build-add-subdirectory --output-on-failure
 
   windows:
     name: Windows UCRT64 (${{ matrix.build-type }})
@@ -76,7 +97,7 @@ jobs:
       - name: Configure
         run: |
           cmake -S . -B build -G "MSYS Makefiles" \
-            -DENABLE_EXAMPLES=ON \
+            -DCOLPACK_BUILD_ALL_EXAMPLES=ON \
             -DCMAKE_BUILD_TYPE=${{ matrix.build-type }}
 
       - name: Build
@@ -84,6 +105,27 @@ jobs:
 
       - name: Test
         run: ctest --test-dir build --output-on-failure
+
+      - name: Install
+        run: cmake --install build --prefix install
+
+      # Build a downstream project against the installed package.
+      - name: Test find_package
+        run: |
+          cmake -S test/consumer -B build-find-package -G "MSYS Makefiles" \
+            -DCMAKE_BUILD_TYPE=${{ matrix.build-type }} \
+            -DCMAKE_PREFIX_PATH=$(cygpath -m "$PWD/install")
+          cmake --build build-find-package
+          ctest --test-dir build-find-package --output-on-failure
+
+      # Include ColPack with add_subdirectory(), as OpenModelica does.
+      - name: Test add_subdirectory
+        run: |
+          cmake -S test/consumer -B build-add-subdirectory -G "MSYS Makefiles" \
+            -DCMAKE_BUILD_TYPE=${{ matrix.build-type }} \
+            -DCOLPACK_SOURCE_DIR=$(cygpath -m "$PWD")
+          cmake --build build-add-subdirectory
+          ctest --test-dir build-add-subdirectory --output-on-failure
 
   macos:
     name: macOS (${{ matrix.build-type }})
@@ -105,7 +147,7 @@ jobs:
       - name: Configure
         run: |
           cmake -S . -B build -G "Unix Makefiles" \
-            -DENABLE_EXAMPLES=ON \
+            -DCOLPACK_BUILD_ALL_EXAMPLES=ON \
             -DCMAKE_BUILD_TYPE=${{ matrix.build-type }} \
             -DOpenMP_ROOT=$(brew --prefix libomp)
 
@@ -114,3 +156,26 @@ jobs:
 
       - name: Test
         run: ctest --test-dir build --output-on-failure
+
+      - name: Install
+        run: cmake --install build --prefix install
+
+      # Build a downstream project against the installed package.
+      - name: Test find_package
+        run: |
+          cmake -S test/consumer -B build-find-package -G "Unix Makefiles" \
+            -DCMAKE_BUILD_TYPE=${{ matrix.build-type }} \
+            -DCMAKE_PREFIX_PATH=$PWD/install \
+            -DOpenMP_ROOT=$(brew --prefix libomp)
+          cmake --build build-find-package
+          ctest --test-dir build-find-package --output-on-failure
+
+      # Include ColPack with add_subdirectory(), as OpenModelica does.
+      - name: Test add_subdirectory
+        run: |
+          cmake -S test/consumer -B build-add-subdirectory -G "Unix Makefiles" \
+            -DCMAKE_BUILD_TYPE=${{ matrix.build-type }} \
+            -DCOLPACK_SOURCE_DIR=$PWD \
+            -DOpenMP_ROOT=$(brew --prefix libomp)
+          cmake --build build-add-subdirectory
+          ctest --test-dir build-add-subdirectory --output-on-failure

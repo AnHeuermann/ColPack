@@ -10,3 +10,5 @@ ColPack
 /build
 lib/
 cmake
+/install/
+/build-*/
