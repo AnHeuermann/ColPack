@@ -174,8 +174,11 @@ if(COLPACK_BUILD_EXAMPLES OR COLPACK_BUILD_ALL_EXAMPLES)
     # The ColPack executable and the examples read their input from ./Graphs.
     file(COPY Graphs DESTINATION ${CMAKE_CURRENT_BINARY_DIR})
 
-    add_executable(ColPack Examples/ColPackAll/Main.cpp)
-    target_link_libraries(ColPack PRIVATE colpack)
+    # The target must not be called ColPack: on case-insensitive file systems
+    # its CMakeFiles/ColPack.dir would clash with CMakeFiles/colpack.dir.
+    add_executable(ColPackAll Examples/ColPackAll/Main.cpp)
+    set_target_properties(ColPackAll PROPERTIES OUTPUT_NAME ColPack)
+    target_link_libraries(ColPackAll PRIVATE colpack)
 
     file(GLOB COLPACK_EXAMPLES
         ${CMAKE_CURRENT_SOURCE_DIR}/Examples/SampleDrivers/Basic/*.cpp)
