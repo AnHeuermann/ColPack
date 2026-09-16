@@ -109,7 +109,7 @@ The above instruction are tested under Ubuntu system. You may need to modify the
 
 Ubuntu Build and Install ColPack Instruction
 ----------------------------------------------
-Install ColPack makes ColPack easy to use and it can also decreases the size of the execuable file. ColPack is built with **CMake** (version 3.10 or newer) and a compiler supporting OpenMP. To build, test and install ColPack, follow the instructions below:
+Install ColPack makes ColPack easy to use and it can also decreases the size of the execuable file. ColPack is built with **CMake** (version 3.12 or newer) and a compiler supporting OpenMP. To build, test and install ColPack, follow the instructions below:
 
     cd
     git clone https://github.com/OpenModelica/ColPack.git  #Download ColPack
@@ -152,7 +152,12 @@ filenames are too long.
 
 MAC OS Build and Install ColPack Instructions
 ---------------------------------------------
-To install ColPack on Mac, you first need to install _Apple Xcode_ and _CMake_. ColPack requires OpenMP, which Mac's default compiler clang does not ship. Then follow the [Ubuntu instructions](#ubuntu-build-and-install-colpack-instructions).
+To install ColPack on Mac, you first need to install _Apple Xcode_ and _CMake_. ColPack requires OpenMP. Mac's default compiler clang supports OpenMP but does not ship the runtime library, so install _libomp_ with [Homebrew](https://brew.sh) and point CMake to it. Otherwise follow the [Ubuntu instructions](#ubuntu-build-and-install-colpack-instructions).
+
+    brew install libomp
+    cmake -S . -B build -DOpenMP_ROOT=$(brew --prefix libomp)
+    cmake --build build -j 4
+    ctest --test-dir build
 
 
 Another recommend altinative way is to install an Ubuntu system on your MAC with *VirtualBox* (or any other virtual machine software), then install ColPack on your virtual machines.

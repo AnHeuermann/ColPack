@@ -98,11 +98,16 @@ jobs:
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 #v7.0.1
 
+      # Apple clang supports OpenMP but does not ship the runtime or <omp.h>.
+      - name: Install dependencies
+        run: brew install libomp
+
       - name: Configure
         run: |
           cmake -S . -B build -G "Unix Makefiles" \
             -DENABLE_EXAMPLES=ON \
-            -DCMAKE_BUILD_TYPE=${{ matrix.build-type }}
+            -DCMAKE_BUILD_TYPE=${{ matrix.build-type }} \
+            -DOpenMP_ROOT=$(brew --prefix libomp)
 
       - name: Build
         run: cmake --build build -j$(sysctl -n hw.ncpu)
