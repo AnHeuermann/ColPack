@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.10)
+cmake_minimum_required(VERSION 3.12)
 project(ColPack)
 
 # Set the version number to the *next* release (not to the prevoius release).
@@ -54,6 +54,12 @@ if(WIN32)
         # CMake can export symbols for us, allowing use of the shared library.
         set(CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS TRUE)
     endif()
+    # Some examples have file names of almost 100 characters. With the FULL
+    # strategy their object paths (CMakeFiles/<target>.dir/.../<source>.obj)
+    # exceed MAX_PATH and the build fails. SHORT uses hashed intermediate
+    # paths; it needs CMake 4.2 and is ignored by older versions.
+    set(CMAKE_INTERMEDIATE_DIR_STRATEGY SHORT CACHE STRING
+        "Strategy for target intermediate directories (FULL or SHORT).")
 endif()
 
 if(ENABLE_OPENMP)
@@ -129,9 +135,12 @@ target_include_directories(ColPack_static PRIVATE
 target_include_directories(ColPack_static INTERFACE
     $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>)
 
+# The SMPGC headers include <omp.h> unconditionally, so OpenMP is PUBLIC:
+# OpenMP::OpenMP_CXX carries the compile flags, the include directories and
+# the runtime library. Passing only OpenMP_CXX_FLAGS misses the latter two,
+# which breaks on macOS where Apple clang needs libomp from Homebrew.
 if(ENABLE_OPENMP)
-    set_target_properties(ColPack_static PROPERTIES COMPILE_FLAGS
-        ${OpenMP_CXX_FLAGS})
+    target_link_libraries(ColPack_static PUBLIC OpenMP::OpenMP_CXX)
 endif()
 
 # "EXPORT" helps with creating a ColPackConfig.cmake file to place in the
@@ -160,9 +169,7 @@ target_include_directories(ColPack_shared INTERFACE
     $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>)
 
 if(ENABLE_OPENMP)
-    set_target_properties(ColPack_shared PROPERTIES COMPILE_FLAGS
-        ${OpenMP_CXX_FLAGS})
-    target_link_libraries(ColPack_shared PRIVATE ${OpenMP_CXX_FLAGS})
+    target_link_libraries(ColPack_shared PUBLIC OpenMP::OpenMP_CXX)
 endif()
 
 install(FILES ${HEADERS} DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/ColPack_headers)
