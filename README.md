@@ -1,4 +1,4 @@
-[![Build Status](https://travis-ci.org/CSCsw/ColPack.svg?branch=master)](https://travis-ci.org/ProbShin/ColPack)
+[![build](https://github.com/OpenModelica/ColPack/actions/workflows/build.yml/badge.svg)](https://github.com/OpenModelica/ColPack/actions/workflows/build.yml)
 
 ColPack's Doxygen documentation is available here:
 http://cscapes.cs.purdue.edu/coloringpage/software.htm
@@ -89,7 +89,7 @@ ColPack is written in an object-oriented fashion in C++ heavily using the Standa
 
 Build and Compile ColPack Instructions
 ======================================
-There are two ways to use ColPack, _Try without Installiation_ and _Build and Install_. The former is fast and easy to use, but is vulnerable for various OS enviroments settings, thus it requires the user know how to modify the **makefile** if met some compiling issue.  The later one is more robust and it will also collect the ColPack into a shared library which makes ColPack easy to cooperate with other applications. But it requires to pre-install **automake**(or **CMake**) software. 
+There are two ways to use ColPack, _Try without Installiation_ and _Build and Install_. The former is fast and easy to use, but is vulnerable for various OS enviroments settings, thus it requires the user know how to modify the **makefile** if met some compiling issue.  The later one is more robust and it will also collect the ColPack into a shared library which makes ColPack easy to cooperate with other applications. But it requires to pre-install **CMake** software. 
 
 Try ColPack by Compile and Run without Installation
 ---------------------------------------------------
@@ -109,40 +109,25 @@ The above instruction are tested under Ubuntu system. You may need to modify the
 
 Ubuntu Build and Install ColPack Instruction
 ----------------------------------------------
-Install ColPack makes ColPack easy to use and it can also decreases the size of the execuable file. **GNU autotools** and **CMake** are supported. To install ColPack using **autotools** (requires that have installed **automake** on your machine.), follows the instructions below.:
+Install ColPack makes ColPack easy to use and it can also decreases the size of the execuable file. ColPack is built with **CMake** (version 3.10 or newer) and a compiler supporting OpenMP. To build, test and install ColPack, follow the instructions below:
 
-    cd   
-    git clone https://github.com/CSCsw/ColPack.git  #Download ColPack
+    cd
+    git clone https://github.com/OpenModelica/ColPack.git  #Download ColPack
     cd ColPack             # ColPack Root Directory
-    cd build/automake      # automake folder
-    autoreconf -vif        # generate configure files based on the machince
-    mkdir mywork           
-    cd mywork
-    fullpath=$(pwd)        # modify fullpath to your destination folder if need
-    ../configure --prefix=${fullpath}  
-    make -j 4              # Where "4" is the number of cores on your machine
-    make install           # install lib and include/ColPack to destination  
+    fullpath=$(pwd)/install  # modify fullpath to your destination folder if need
+    cmake -S . -B build -DCMAKE_INSTALL_PREFIX:PATH=${fullpath}
+    cmake --build build -j 4   # Where "4" is the number of cores on your machine
+    ctest --test-dir build     # run the Basic examples as tests
+    cmake --install build      # install the libraries and headers
 
-Append `--disable-openmp` to `./configure` above if you need to disable OpenMP.(MAC user and some Windows user)  
+Use `cmake -LH build` or `ccmake build` to see a list of
+options, such as `ENABLE_EXAMPLES` and `ENABLE_OPENMP`, which you can set when
+configuring:
 
-ColPack also has support for building with CMake, which you can do
-via the following:
+    cmake -S . -B build -DENABLE_EXAMPLES=ON
 
-    mkdir build/cmake/mywork
-    cd build/cmake/mywork
-    fullpath=$(pwd)        # modify fullpath to your destination folder if need
-    cmake .. -DCMAKE_INSTALL_PREFIX:PATH=${fullpath} 
-    make -j 4              # Where "4" is the number of cores on your machine
-    make install           # install the libararies
+If not using`-DCMAKE_INSTALL_PREFIX:PATH`, the library files will be installed under `/usr/local/` by default which may requires privilege.
 
-Use `cmake -LH .` or `ccmake .` in the build directory to see a list of
-options, such as `ENABLE_EXAMPLES` and `ENABLE_OPENMP`, which you can set by
-running the following from the build directory:
-
-    cmake .. -DENABLE_OPENMP=ON
-   
-If not using`-DCMAKE_INSTALL_PREFIX:PATH`, the library files will be installed under `/usr/lib/` by default which may requires privilege.
-    
 Windows Build and Install ColPack Instruction
 -------------------------------------------------------
 You can build ColPack's static library on Windows using Visual Studio 
@@ -167,19 +152,7 @@ filenames are too long.
 
 MAC OS Build and Install ColPack Instructions
 ---------------------------------------------
-To install ColPack on Mac, you first need to install _Apple Xcode_ and _automake_. Since (it is well known that) Mac's default compiler clang doesn't support OpenMP well, you need either install _OpenMP_ and _gcc_ compiler or disable _OpenMP_ by `--disable-openmp` .(It's a well known problem, MAC's default compiler clang doesn't support OpenMP well.) 
-
-    cd   
-    git clone https://github.com/CSCsw/ColPack.git  #Download ColPack
-    cd ColPack             # ColPack Root Directory
-    cd build/automake
-    autoreconf -vif  
-    mkdir mywork
-    cd mywork
-    fullpath=$(pwd)        # modify fullpath to your destination folder if need
-    ./configure --prefix=${fullpath} --disable-openmp
-    make -j 4              # Where "4" is the number of cores on your machine
-    make install           # install lib and include/ColPack to destination  
+To install ColPack on Mac, you first need to install _Apple Xcode_ and _CMake_. ColPack requires OpenMP, which Mac's default compiler clang does not ship. Then follow the [Ubuntu instructions](#ubuntu-build-and-install-colpack-instructions).
 
 
 Another recommend altinative way is to install an Ubuntu system on your MAC with *VirtualBox* (or any other virtual machine software), then install ColPack on your virtual machines.
@@ -205,7 +178,7 @@ We provide a template codes in `Example_Use_Library`
 USAGE
 =====
 
-After building (or compile), you can run the following commands from where the executable file `ColPack` generated (ColPack root directory if using autotools, from the cmake directory if using CMake, or current directory if directly compile):
+After building (or compile), you can run the following commands from where the executable file `ColPack` generated (the build directory if using CMake, or current directory if directly compile):
 
 	$./ColPack -f <graph_file_name> -o <ordering> -m <methods> [-v] ...
 
