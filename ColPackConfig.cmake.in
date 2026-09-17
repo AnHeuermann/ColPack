@@ -1,12 +1,6 @@
-# This file is configured by CMake and installed into ColPack's installation.
-# It is used by downstream (client) projects when they use
-# find_package(ColPack) in their CMakeLists.txt.
-#
-# For downstream users: the available target is ColPack::colpack.
 @PACKAGE_INIT@
 
 include(CMakeFindDependencyMacro)
-# The ColPack target links OpenMP::OpenMP_CXX publicly.
 if(@COLPACK_ENABLE_OPENMP@)
     find_dependency(OpenMP COMPONENTS CXX)
 endif()

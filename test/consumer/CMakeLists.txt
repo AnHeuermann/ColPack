@@ -1,8 +1,5 @@
-# Minimal downstream project to test both ways of using ColPack:
-#   - add_subdirectory(), as OpenModelica does:
-#       cmake -S test/consumer -B <dir> -DCOLPACK_SOURCE_DIR=<ColPack source dir>
-#   - find_package() on an installed ColPack:
-#       cmake -S test/consumer -B <dir> -DCMAKE_PREFIX_PATH=<ColPack install prefix>
+# Tests using ColPack with add_subdirectory() (set COLPACK_SOURCE_DIR) or
+# find_package() (set CMAKE_PREFIX_PATH).
 cmake_minimum_required(VERSION 3.14)
 project(ColPackConsumer LANGUAGES CXX)
 

@@ -46,7 +46,6 @@ jobs:
       - name: Install
         run: cmake --install build --prefix install
 
-      # Build a downstream project against the installed package.
       - name: Test find_package
         run: |
           cmake -S test/consumer -B build-find-package -G "Unix Makefiles" \
@@ -55,7 +54,6 @@ jobs:
           cmake --build build-find-package
           ctest --test-dir build-find-package --output-on-failure
 
-      # Include ColPack with add_subdirectory(), as OpenModelica does.
       - name: Test add_subdirectory
         run: |
           cmake -S test/consumer -B build-add-subdirectory -G "Unix Makefiles" \
@@ -85,11 +83,8 @@ jobs:
         with:
           msystem: UCRT64
           update: true
-          # "MSYS Makefiles" drives /usr/bin/make from the MSYS subsystem, so
-          # that one is not a pacboy (:p / UCRT64) package.
           install: >-
             make
-          # :p expands to the mingw-w64-ucrt-x86_64-* package of the same name.
           pacboy: >-
             toolchain:p
             cmake:p
@@ -109,7 +104,6 @@ jobs:
       - name: Install
         run: cmake --install build --prefix install
 
-      # Build a downstream project against the installed package.
       - name: Test find_package
         run: |
           cmake -S test/consumer -B build-find-package -G "MSYS Makefiles" \
@@ -118,7 +112,6 @@ jobs:
           cmake --build build-find-package
           ctest --test-dir build-find-package --output-on-failure
 
-      # Include ColPack with add_subdirectory(), as OpenModelica does.
       - name: Test add_subdirectory
         run: |
           cmake -S test/consumer -B build-add-subdirectory -G "MSYS Makefiles" \
@@ -140,7 +133,6 @@ jobs:
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 #v7.0.1
 
-      # Apple clang supports OpenMP but does not ship the runtime or <omp.h>.
       - name: Install dependencies
         run: brew install libomp
 
@@ -160,7 +152,6 @@ jobs:
       - name: Install
         run: cmake --install build --prefix install
 
-      # Build a downstream project against the installed package.
       - name: Test find_package
         run: |
           cmake -S test/consumer -B build-find-package -G "Unix Makefiles" \
@@ -170,7 +161,6 @@ jobs:
           cmake --build build-find-package
           ctest --test-dir build-find-package --output-on-failure
 
-      # Include ColPack with add_subdirectory(), as OpenModelica does.
       - name: Test add_subdirectory
         run: |
           cmake -S test/consumer -B build-add-subdirectory -G "Unix Makefiles" \

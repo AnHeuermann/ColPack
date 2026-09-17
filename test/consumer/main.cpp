@@ -1,5 +1,3 @@
-// Star color the sparsity pattern of a 5x5 Hessian and create the seed matrix,
-// using headers from every ColPack source directory.
 #include "ColPackHeaders.h"
 #include "SMPGCColoring.h"
 

@@ -1,18 +1,12 @@
 cmake_minimum_required(VERSION 3.14)
 project(ColPack VERSION 1.0.11 LANGUAGES CXX)
 
-# ColPack can be built on its own or be included into another project with
-# add_subdirectory(), e.g. by OpenModelica. Settings that would leak into or
-# slow down a parent project are only applied when ColPack is the top-level
-# project.
 if(CMAKE_SOURCE_DIR STREQUAL CMAKE_CURRENT_SOURCE_DIR)
     set(COLPACK_IS_TOP_LEVEL ON)
 else()
     set(COLPACK_IS_TOP_LEVEL OFF)
 endif()
 
-# User options.
-# -------------
 option(COLPACK_ENABLE_OPENMP "Build ColPack with OpenMP support." ON)
 option(COLPACK_BUILD_SHARED_LIBS "Build ColPack as a shared library." OFF)
 option(COLPACK_BUILD_EXAMPLES
@@ -24,7 +18,6 @@ option(COLPACK_BUILD_ALL_EXAMPLES
 
 if(COLPACK_IS_TOP_LEVEL)
     if(NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CONFIGURATION_TYPES)
-        # By default, compile with optimizations and without debug symbols.
         set(CMAKE_BUILD_TYPE Release CACHE STRING
             "Choose the type of build, e.g., optimization level, debug symbols."
             FORCE)
@@ -33,10 +26,7 @@ if(COLPACK_IS_TOP_LEVEL)
     endif()
 
     if(WIN32)
-        # Some examples have file names of almost 100 characters. With the FULL
-        # strategy their object paths (CMakeFiles/<target>.dir/.../<source>.obj)
-        # exceed MAX_PATH and the build fails. SHORT uses hashed intermediate
-        # paths; it needs CMake 4.2 and is ignored by older versions.
+        # Long example names exceed MAX_PATH otherwise. Requires CMake 4.2.
         set(CMAKE_INTERMEDIATE_DIR_STRATEGY SHORT CACHE STRING
             "Strategy for target intermediate directories (FULL or SHORT).")
     endif()
@@ -44,8 +34,6 @@ endif()
 
 include(GNUInstallDirs)
 
-# ColPack library.
-# ----------------
 set(COLPACK_SOURCES
     src/SMPGC/SMPGCColoringD1Orig.cpp
     src/SMPGC/SMPGCColoringD1.cpp
@@ -88,7 +76,6 @@ set(COLPACK_SOURCES
     src/GeneralGraphColoring/GraphOrdering.cpp
 )
 
-# The headers include each other by file name, so every directory is needed.
 set(COLPACK_HEADER_DIRS
     inc
     src/Utilities
@@ -101,8 +88,6 @@ set(COLPACK_HEADER_DIRS
 
 if(COLPACK_BUILD_SHARED_LIBS)
     add_library(colpack SHARED ${COLPACK_SOURCES})
-    # Since we do not use __declspec(dllexport) etc, let CMake export all
-    # symbols on Windows.
     set_target_properties(colpack PROPERTIES
         WINDOWS_EXPORT_ALL_SYMBOLS ON
         SOVERSION 0)
@@ -111,8 +96,6 @@ else()
 endif()
 add_library(ColPack::colpack ALIAS colpack)
 
-# Position independent, so the static library can be linked into shared
-# libraries, e.g. OpenModelica's simulation runtime.
 set_target_properties(colpack PROPERTIES POSITION_INDEPENDENT_CODE ON)
 target_compile_features(colpack PUBLIC cxx_std_11)
 
@@ -123,10 +106,7 @@ endforeach()
 target_include_directories(colpack PUBLIC
     $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}/ColPack>)
 
-# The SMPGC headers include <omp.h> unconditionally, so OpenMP is PUBLIC:
-# OpenMP::OpenMP_CXX carries the compile flags, the include directories and
-# the runtime library. Passing only OpenMP_CXX_FLAGS misses the latter two,
-# which breaks on macOS where Apple clang needs libomp from Homebrew.
+# The SMPGC headers include <omp.h>, so OpenMP is a public dependency.
 if(COLPACK_ENABLE_OPENMP)
     find_package(OpenMP REQUIRED COMPONENTS CXX)
     if(MSVC)
@@ -135,8 +115,6 @@ if(COLPACK_ENABLE_OPENMP)
     target_link_libraries(colpack PUBLIC OpenMP::OpenMP_CXX)
 endif()
 
-# Installation.
-# -------------
 install(TARGETS colpack EXPORT ColPackTargets
     RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
     LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
@@ -148,7 +126,6 @@ foreach(dir ${COLPACK_HEADER_DIRS})
         FILES_MATCHING PATTERN "*.h")
 endforeach()
 
-# CMake package, so downstream projects can use find_package(ColPack).
 set(COLPACK_INSTALL_CMAKEDIR ${CMAKE_INSTALL_LIBDIR}/cmake/ColPack)
 install(EXPORT ColPackTargets
     NAMESPACE ColPack::
@@ -166,16 +143,12 @@ install(FILES
     ${CMAKE_CURRENT_BINARY_DIR}/ColPackConfigVersion.cmake
     DESTINATION ${COLPACK_INSTALL_CMAKEDIR})
 
-# Examples and tests.
-# -------------------
 if(COLPACK_BUILD_EXAMPLES OR COLPACK_BUILD_ALL_EXAMPLES)
     enable_testing()
 
-    # The ColPack executable and the examples read their input from ./Graphs.
     file(COPY Graphs DESTINATION ${CMAKE_CURRENT_BINARY_DIR})
 
-    # The target must not be called ColPack: on case-insensitive file systems
-    # its CMakeFiles/ColPack.dir would clash with CMakeFiles/colpack.dir.
+    # Not named ColPack, which clashes with colpack on case-insensitive file systems.
     add_executable(ColPackAll Examples/ColPackAll/Main.cpp)
     set_target_properties(ColPackAll PROPERTIES OUTPUT_NAME ColPack)
     target_link_libraries(ColPackAll PRIVATE colpack)
